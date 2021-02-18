@@ -2,6 +2,7 @@ import os
 import copy
 import time
 import torch
+from datetime import datetime
 from ikomia.dnn.torch import utils, models
 from torchvision import datasets, transforms
 
@@ -167,7 +168,15 @@ class Mnasnet:
         model_ft, hist = self.train_model(model, data_loaders, loss, optimizer, on_epoch_end)
 
         # Save model
-        model_folder = os.path.dirname(os.path.realpath(__file__)) + "/models/"
+        if not os.path.isdir(self.parameters.output_folder):
+            os.mkdir(self.parameters.output_folder)
+
+        if not self.parameters.output_folder.endswith('/'):
+            self.parameters.output_folder += '/'
+
+        str_datetime = datetime.now().strftime("%d-%m-%YT%Hh%Mm%Ss")
+        model_folder = self.parameters.output_folder + str_datetime + "/"
+
         if not os.path.isdir(model_folder):
             os.mkdir(model_folder)
 

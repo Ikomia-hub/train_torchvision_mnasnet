@@ -1,5 +1,6 @@
 from ikomia import core, dataprocess
 from ikomia.dnn import dnntrain
+import os
 import copy
 # Your imports below
 import MnasNet
@@ -24,6 +25,7 @@ class MnasNetTrainParam(dataprocess.CDnnTrainProcessParam):
         self.feature_extract = True
         self.export_pth = True
         self.export_onnx = False
+        self.output_folder = os.path.dirname(os.path.realpath(__file__)) + "/models/"
 
     def setParamMap(self, paramMap):
         # Set parameters values from Ikomia application
@@ -35,6 +37,7 @@ class MnasNetTrainParam(dataprocess.CDnnTrainProcessParam):
         self.feature_extract = bool(paramMap["feature_extract"])
         self.export_pth = bool(paramMap["export_pth"])
         self.export_onnx = bool(paramMap["export_onnx"])
+        self.output_folder = paramMap["output_folder"]
 
     def getParamMap(self):
         # Send parameters values to Ikomia application
@@ -46,6 +49,7 @@ class MnasNetTrainParam(dataprocess.CDnnTrainProcessParam):
         param_map["feature_extract"] = str(self.feature_extract)
         param_map["export_pth"] = str(self.export_pth)
         param_map["export_onnx"] = str(self.export_onnx)
+        param_map["output_folder"] = self.output_folder
         return param_map
 
 
@@ -113,7 +117,7 @@ class MnasNetTrainProcessFactory(dataprocess.CProcessFactory):
     def __init__(self):
         dataprocess.CProcessFactory.__init__(self)
         # Set process information as string here
-        self.info.name = "MnasNetTrain"
+        self.info.name = "MnasNet Train"
         self.info.shortDescription = "Training process for MnasNet convolutional network."
         self.info.description = "Training process for MnasNet convolutional network. It requires a specific dataset " \
                                 "structure based on folder names. It follows the PyTorch torchvision convention. " \
@@ -121,7 +125,7 @@ class MnasNetTrainProcessFactory(dataprocess.CProcessFactory):
                                 "One could train the full network from pre-trained weights or keep extracted features " \
                                 "and re-train only the classification layer."
         self.info.authors = "Ikomia"
-        self.info.version = "1.0.0"
+        self.info.version = "1.1.0"
         self.info.year = 2020
         self.info.license = "MIT License"
         self.info.repo = "https://github.com/Ikomia-dev"
