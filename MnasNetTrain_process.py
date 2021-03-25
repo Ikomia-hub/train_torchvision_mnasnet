@@ -125,7 +125,7 @@ class MnasNetTrainProcessFactory(dataprocess.CProcessFactory):
                                 "One could train the full network from pre-trained weights or keep extracted features " \
                                 "and re-train only the classification layer."
         self.info.authors = "Ikomia"
-        self.info.version = "1.1.0"
+        self.info.version = "1.1.1"
         self.info.year = 2020
         self.info.license = "MIT License"
         self.info.repo = "https://github.com/Ikomia-dev"
