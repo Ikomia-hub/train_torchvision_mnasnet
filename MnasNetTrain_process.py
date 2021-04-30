@@ -10,47 +10,24 @@ import MnasNet
 # - Class to handle the process parameters
 # - Inherits core.CProtocolTaskParam from Ikomia API
 # --------------------
-class MnasNetTrainParam(dataprocess.CDnnTrainProcessParam):
+class MnasNetTrainParam(dnntrain.TrainParam):
 
     def __init__(self):
-        dataprocess.CDnnTrainProcessParam.__init__(self)
+        dnntrain.TrainParam.__init__(self)
         # Place default value initialization here
-        self.model_name = 'mnasnet'
-        self.batch_size = 8
-        self.classes = 2
-        self.epochs = 15
-        self.num_workers = 0
-        self.input_size = 224
-        self.use_pretrained = True
-        self.feature_extract = True
-        self.export_pth = True
-        self.export_onnx = False
-        self.output_folder = os.path.dirname(os.path.realpath(__file__)) + "/models/"
-
-    def setParamMap(self, paramMap):
-        # Set parameters values from Ikomia application
-        # Parameters values are stored as string and accessible like a python dict
-        super().setParamMap(paramMap)
-        self.num_workers = int(paramMap["num_workers"])
-        self.input_size = int(paramMap["input_size"])
-        self.use_pretrained = bool(paramMap["use_pretrained"])
-        self.feature_extract = bool(paramMap["feature_extract"])
-        self.export_pth = bool(paramMap["export_pth"])
-        self.export_onnx = bool(paramMap["export_onnx"])
-        self.output_folder = paramMap["output_folder"]
-
-    def getParamMap(self):
-        # Send parameters values to Ikomia application
-        # Create the specific dict structure (string container)
-        param_map = super().getParamMap()
-        param_map["num_workers"] = str(self.num_workers)
-        param_map["input_size"] = str(self.input_size)
-        param_map["use_pretrained"] = str(self.use_pretrained)
-        param_map["feature_extract"] = str(self.feature_extract)
-        param_map["export_pth"] = str(self.export_pth)
-        param_map["export_onnx"] = str(self.export_onnx)
-        param_map["output_folder"] = self.output_folder
-        return param_map
+        self.cfg["model_name"] = 'mnasnet'
+        self.cfg["batch_size"] = 8
+        self.cfg["classes"] = 2
+        self.cfg["epochs"] = 15
+        self.cfg["learning_rate"] = 0.001
+        self.cfg["momentum"] = 0.9
+        self.cfg["num_workers"] = 0
+        self.cfg["input_size"] = 224
+        self.cfg["use_pretrained"] = True
+        self.cfg["feature_extract"] = True
+        self.cfg["export_pth"] = True
+        self.cfg["export_onnx"] = False
+        self.cfg["output_folder"] = os.path.dirname(os.path.realpath(__file__)) + "/models/"
 
 
 # --------------------
@@ -71,13 +48,14 @@ class MnasNetTrainProcess(dnntrain.TrainProcess):
             self.setParam(copy.deepcopy(param))
 
         self.trainer = MnasNet.Mnasnet(self.getParam())
+        self.enableTensorboard(False)
 
     def getProgressSteps(self, eltCount=1):
         # Function returning the number of progress steps for this process
         # This is handled by the main progress bar of Ikomia application
         param = self.getParam()
         if param is not None:
-            return param.epochs
+            return param.cfg["epochs"]
         else:
             return 1
 
@@ -125,7 +103,7 @@ class MnasNetTrainProcessFactory(dataprocess.CProcessFactory):
                                 "One could train the full network from pre-trained weights or keep extracted features " \
                                 "and re-train only the classification layer."
         self.info.authors = "Ikomia"
-        self.info.version = "1.1.1"
+        self.info.version = "1.2.0"
         self.info.year = 2020
         self.info.license = "MIT License"
         self.info.repo = "https://github.com/Ikomia-dev"

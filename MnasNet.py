@@ -21,14 +21,14 @@ class Mnasnet:
         # Just normalization for validation
         data_transforms = {
             'train': transforms.Compose([
-                transforms.RandomResizedCrop(self.parameters.input_size),
+                transforms.RandomResizedCrop(self.parameters.cfg["input_size"]),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ]),
             'val': transforms.Compose([
-                transforms.Resize(self.parameters.input_size),
-                transforms.CenterCrop(self.parameters.input_size),
+                transforms.Resize(self.parameters.cfg["input_size"]),
+                transforms.CenterCrop(self.parameters.cfg["input_size"]),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ]),
@@ -40,8 +40,9 @@ class Mnasnet:
         }
         # Create training and validation dataloaders
         dataloaders_dict = {
-            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=self.parameters.batch_size, shuffle=True,
-                                           num_workers=self.parameters.num_workers) for x in ['train', 'val']
+            x: torch.utils.data.DataLoader(image_datasets[x], batch_size=self.parameters.cfg["batch_size"],
+                                           shuffle=True,
+                                           num_workers=self.parameters.cfg["num_workers"]) for x in ['train', 'val']
         }
         return dataloaders_dict
 
@@ -56,7 +57,7 @@ class Mnasnet:
         #  is True.
         params_to_update = model_ft.parameters()
         print("Params to learn:")
-        if self.parameters.feature_extract:
+        if self.parameters.cfg["feature_extract"]:
             params_to_update = []
             for name, param in model_ft.named_parameters():
                 if param.requires_grad:
@@ -68,8 +69,8 @@ class Mnasnet:
                     print("\t", name)
 
         # Observe that all parameters are being optimized
-        optimizer_ft = torch.optim.SGD(params_to_update, lr=self.parameters.learning_rate,
-                                       momentum=self.parameters.momentum)
+        optimizer_ft = torch.optim.SGD(params_to_update, lr=self.parameters.cfg["learning_rate"],
+                                       momentum=self.parameters.cfg["momentum"])
         return optimizer_ft
 
     def train_model(self, model, data_loaders, criterion, optimizer, on_epoch_end):
@@ -82,8 +83,8 @@ class Mnasnet:
         epoch_loss = 0.0
         epoch_acc = 0.0
 
-        for epoch in range(self.parameters.epochs):
-            print('Epoch {}/{}'.format(epoch + 1, self.parameters.epochs))
+        for epoch in range(self.parameters.cfg["epochs"]):
+            print('Epoch {}/{}'.format(epoch + 1, self.parameters.cfg["epochs"]))
             print('-' * 10)
 
             # Each epoch has a training and validation phase
@@ -159,8 +160,9 @@ class Mnasnet:
         loss = torch.nn.CrossEntropyLoss()
 
         # Initialize the model for this run
-        model = models.mnasnet(train_mode=True, use_pretrained=self.parameters.use_pretrained,
-                                 feature_extract=self.parameters.feature_extract, classes=self.parameters.classes)
+        model = models.mnasnet(train_mode=True, use_pretrained=self.parameters.cfg["use_pretrained"],
+                               feature_extract=self.parameters.cfg["feature_extract"],
+                               classes=self.parameters.cfg["classes"])
 
         optimizer = self.init_optimizer(model)
 
@@ -168,27 +170,27 @@ class Mnasnet:
         model_ft, hist = self.train_model(model, data_loaders, loss, optimizer, on_epoch_end)
 
         # Save model
-        if not os.path.isdir(self.parameters.output_folder):
-            os.mkdir(self.parameters.output_folder)
+        if not os.path.isdir(self.parameters.cfg["output_folder"]):
+            os.mkdir(self.parameters.cfg["output_folder"])
 
-        if not self.parameters.output_folder.endswith('/'):
-            self.parameters.output_folder += '/'
+        if not self.parameters.cfg["output_folder"].endswith('/'):
+            self.parameters.cfg["output_folder"] += '/'
 
         str_datetime = datetime.now().strftime("%d-%m-%YT%Hh%Mm%Ss")
-        model_folder = self.parameters.output_folder + str_datetime + "/"
+        model_folder = self.parameters.cfg["output_folder"] + str_datetime + "/"
 
         if not os.path.isdir(model_folder):
             os.mkdir(model_folder)
 
         # .pth
-        if self.parameters.export_pth:
-            model_path = model_folder + self.parameters.model_name + ".pth"
+        if self.parameters.cfg["export_pth"]:
+            model_path = model_folder + self.parameters.cfg["model_name"] + ".pth"
             utils.save_pth(model_ft, model_path)
 
         # .onnx
-        if self.parameters.export_onnx:
-            model_path = model_folder + self.parameters.model_name + ".onnx"
-            input_shape = [1, 3, self.parameters.input_size, self.parameters.input_size]
+        if self.parameters.cfg["export_onnx"]:
+            model_path = model_folder + self.parameters.cfg["model_name"] + ".onnx"
+            input_shape = [1, 3, self.parameters.cfg["input_size"], self.parameters.cfg["input_size"]]
             utils.save_onnx(model, input_shape, self.device, model_path)
 
     def stop(self):
