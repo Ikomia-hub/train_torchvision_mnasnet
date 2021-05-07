@@ -29,6 +29,21 @@ class MnasNetTrainParam(dnntrain.TrainParam):
         self.cfg["export_onnx"] = False
         self.cfg["output_folder"] = os.path.dirname(os.path.realpath(__file__)) + "/models/"
 
+    def setParamMap(self, param_map):
+        self.cfg["model_name"] = param_map["model_name"]
+        self.cfg["batch_size"] = int(param_map["batch_size"])
+        self.cfg["classes"] = int(param_map["classes"])
+        self.cfg["epochs"] = int(param_map["epochs"])
+        self.cfg["learning_rate"] = float(param_map["learning_rate"])
+        self.cfg["momentum"] = float(param_map["momentum"])
+        self.cfg["num_workers"] = int(param_map["num_workers"])
+        self.cfg["input_size"] = int(param_map["input_size"])
+        self.cfg["use_pretrained"] = bool(param_map["use_pretrained"])
+        self.cfg["feature_extract"] = bool(param_map["feature_extract"])
+        self.cfg["export_pth"] = bool(param_map["export_pth"])
+        self.cfg["export_onnx"] = bool(param_map["export_onnx"])
+        self.cfg["output_folder"] = param_map["output_folder"]
+
 
 # --------------------
 # - Class which implements the process
