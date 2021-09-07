@@ -1,19 +1,19 @@
 from ikomia import core, dataprocess
+from ikomia.core.task import TaskParam
 from ikomia.dnn import dnntrain
 import os
 import copy
-# Your imports below
-import MnasNet
+from MnasNetTrain import MnasNet
 
 
 # --------------------
 # - Class to handle the process parameters
 # - Inherits core.CProtocolTaskParam from Ikomia API
 # --------------------
-class MnasNetTrainParam(dnntrain.TrainParam):
+class MnasNetTrainParam(TaskParam):
 
     def __init__(self):
-        dnntrain.TrainParam.__init__(self)
+        TaskParam.__init__(self)
         # Place default value initialization here
         self.cfg["model_name"] = 'mnasnet'
         self.cfg["batch_size"] = 8
@@ -105,10 +105,10 @@ class MnasNetTrainProcess(dnntrain.TrainProcess):
 # - Factory class to build process object
 # - Inherits dataprocess.CProcessFactory from Ikomia API
 # --------------------
-class MnasNetTrainProcessFactory(dataprocess.CProcessFactory):
+class MnasNetTrainProcessFactory(dataprocess.CTaskFactory):
 
     def __init__(self):
-        dataprocess.CProcessFactory.__init__(self)
+        dataprocess.CTaskFactory.__init__(self)
         # Set process information as string here
         self.info.name = "MnasNet Train"
         self.info.shortDescription = "Training process for MnasNet convolutional network."
