@@ -1,6 +1,6 @@
 from ikomia import utils, core, dataprocess
 from ikomia.utils import pyqtutils, qtconversion
-from MnasNetTrain.MnasNetTrain_process import MnasNetTrainParam
+from train_torchvision_mnasnet.train_torchvision_mnasnet_process import TrainMnasnetParam
 # PyQt GUI framework
 from PyQt5.QtWidgets import *
 
@@ -9,13 +9,13 @@ from PyQt5.QtWidgets import *
 # - Class which implements widget associated with the process
 # - Inherits core.CProtocolTaskWidget from Ikomia API
 # --------------------
-class MnasNetTrainWidget(core.CWorkflowTaskWidget):
+class TrainMnasnetWidget(core.CWorkflowTaskWidget):
 
     def __init__(self, param, parent):
         core.CWorkflowTaskWidget.__init__(self, parent)
 
         if param is None:
-            self.parameters = MnasNetTrainParam()
+            self.parameters = TrainMnasnetParam()
         else:
             self.parameters = param
 
@@ -88,13 +88,13 @@ class MnasNetTrainWidget(core.CWorkflowTaskWidget):
 # - Factory class to build process widget object
 # - Inherits dataprocess.CWidgetFactory from Ikomia API
 # --------------------
-class MnasNetTrainWidgetFactory(dataprocess.CWidgetFactory):
+class TrainMnasnetWidgetFactory(dataprocess.CWidgetFactory):
 
     def __init__(self):
         dataprocess.CWidgetFactory.__init__(self)
         # Set the name of the process -> it must be the same as the one declared in the process factory class
-        self.name = "MnasNet Train"
+        self.name = "train_torchvision_mnasnet"
 
     def create(self, param):
         # Create widget object
-        return MnasNetTrainWidget(param, None)
+        return TrainMnasnetWidget(param, None)

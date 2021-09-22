@@ -3,14 +3,14 @@ from ikomia.core.task import TaskParam
 from ikomia.dnn import dnntrain
 import os
 import copy
-from MnasNetTrain import MnasNet
+from train_torchvision_mnasnet import mnasnet
 
 
 # --------------------
 # - Class to handle the process parameters
 # - Inherits core.CProtocolTaskParam from Ikomia API
 # --------------------
-class MnasNetTrainParam(TaskParam):
+class TrainMnasnetParam(TaskParam):
 
     def __init__(self):
         TaskParam.__init__(self)
@@ -49,7 +49,7 @@ class MnasNetTrainParam(TaskParam):
 # - Class which implements the process
 # - Inherits core.CProtocolTask or derived from Ikomia API
 # --------------------
-class MnasNetTrainProcess(dnntrain.TrainProcess):
+class TrainMnasnet(dnntrain.TrainProcess):
 
     def __init__(self, name, param):
         dnntrain.TrainProcess.__init__(self, name, param)
@@ -58,11 +58,11 @@ class MnasNetTrainProcess(dnntrain.TrainProcess):
 
         # Create parameters class
         if param is None:
-            self.setParam(MnasNetTrainParam())
+            self.setParam(TrainMnasnetParam())
         else:
             self.setParam(copy.deepcopy(param))
 
-        self.trainer = MnasNet.Mnasnet(self.getParam())
+        self.trainer = mnasnet.Mnasnet(self.getParam())
         self.enableTensorboard(False)
 
     def getProgressSteps(self, eltCount=1):
@@ -105,12 +105,12 @@ class MnasNetTrainProcess(dnntrain.TrainProcess):
 # - Factory class to build process object
 # - Inherits dataprocess.CProcessFactory from Ikomia API
 # --------------------
-class MnasNetTrainProcessFactory(dataprocess.CTaskFactory):
+class TrainMnasnetFactory(dataprocess.CTaskFactory):
 
     def __init__(self):
         dataprocess.CTaskFactory.__init__(self)
         # Set process information as string here
-        self.info.name = "MnasNet Train"
+        self.info.name = "train_torchvision_mnasnet"
         self.info.shortDescription = "Training process for MnasNet convolutional network."
         self.info.description = "Training process for MnasNet convolutional network. It requires a specific dataset " \
                                 "structure based on folder names. It follows the PyTorch torchvision convention. " \
@@ -129,4 +129,4 @@ class MnasNetTrainProcessFactory(dataprocess.CTaskFactory):
 
     def create(self, param=None):
         # Create process object
-        return MnasNetTrainProcess(self.info.name, param)
+        return TrainMnasnet(self.info.name, param)
