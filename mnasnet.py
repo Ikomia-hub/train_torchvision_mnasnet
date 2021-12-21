@@ -38,13 +38,14 @@ class Mnasnet:
         image_datasets = {
             x: datasets.ImageFolder(os.path.join(dataset_dir, x), data_transforms[x]) for x in ['train', 'val']
         }
+
         # Create training and validation dataloaders
         dataloaders_dict = {
             x: torch.utils.data.DataLoader(image_datasets[x], batch_size=self.parameters.cfg["batch_size"],
                                            shuffle=True,
                                            num_workers=self.parameters.cfg["num_workers"]) for x in ['train', 'val']
         }
-        return dataloaders_dict
+        return dataloaders_dict, image_datasets["val"].classes
 
     def init_optimizer(self, model):
         # Send the model to GPU if available
@@ -69,11 +70,13 @@ class Mnasnet:
                     print("\t", name)
 
         # Observe that all parameters are being optimized
-        optimizer_ft = torch.optim.SGD(params_to_update, lr=self.parameters.cfg["learning_rate"],
-                                       momentum=self.parameters.cfg["momentum"])
+        optimizer_ft = torch.optim.SGD(params_to_update,
+                                       lr=self.parameters.cfg["learning_rate"],
+                                       momentum=self.parameters.cfg["momentum"],
+                                       weight_decay=self.parameters.cfg["weight_decay"])
         return optimizer_ft
 
-    def train_model(self, model, data_loaders, criterion, optimizer, on_epoch_end):
+    def train_model(self, model, data_loaders, criterion, optimizer, classes, on_epoch_end):
         since = time.time()
 
         metrics = {}
@@ -82,6 +85,7 @@ class Mnasnet:
         best_acc = 0.0
         epoch_loss = 0.0
         epoch_acc = 0.0
+        class_count = len(classes)
 
         for epoch in range(self.parameters.cfg["epochs"]):
             print('Epoch {}/{}'.format(epoch + 1, self.parameters.cfg["epochs"]))
@@ -96,6 +100,7 @@ class Mnasnet:
 
                 running_loss = 0.0
                 running_corrects = 0
+                confusion_matrix = torch.zeros(class_count, class_count)
 
                 # Iterate over data.
                 for inputs, labels in data_loaders[phase]:
@@ -122,23 +127,34 @@ class Mnasnet:
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
 
-                epoch_loss = running_loss / len(data_loaders[phase].dataset)
-                epoch_acc = running_corrects.double() / len(data_loaders[phase].dataset)
+                    for t, p in zip(labels.view(-1), preds.view(-1)):
+                        confusion_matrix[t.long(), p.long()] += 1
 
+                data_count = len(data_loaders[phase].dataset)
+                epoch_loss = running_loss / data_count
+                epoch_acc = running_corrects.double() / data_count
                 print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
-                # deep copy the model
-                if phase == 'val' and epoch_acc > best_acc:
-                    best_acc = epoch_acc
-                    best_model_wts = copy.deepcopy(model.state_dict())
                 if phase == 'val':
-                    val_acc_history.append(epoch_acc)
-                    metrics["Loss"] = epoch_loss
-                    metrics["Accuracy"] = epoch_acc.item()
-                    metrics["Best accuracy"] = best_acc.item()
-                    on_epoch_end(metrics)
+                    if epoch_acc > best_acc:
+                        # deep copy the model
+                        best_acc = epoch_acc
+                        best_model_wts = copy.deepcopy(model.state_dict())
 
-            print()
+                    val_acc_history.append(epoch_acc)
+                    metrics["Validation loss"] = epoch_loss
+                    metrics["Validation accuracy"] = epoch_acc.item()
+                    metrics["Best validation accuracy"] = best_acc.item()
+
+                    epoch_class_acc = confusion_matrix.diag() / confusion_matrix.sum(1)
+                    print("{} per class Acc: {}".format(phase, epoch_class_acc))
+
+                    for i, acc in enumerate(epoch_class_acc):
+                        key = classes[i] + " accuracy"
+                        metrics[key] = acc.item()
+
+                    on_epoch_end(metrics, epoch + 1)
+
             if self.stop_train:
                 break
 
@@ -154,20 +170,21 @@ class Mnasnet:
         self.stop_train = False
 
         # Load dataset
-        data_loaders = self.load_data(dataset_dir)
+        data_loaders, classes = self.load_data(dataset_dir)
 
         # Setup the loss function
         loss = torch.nn.CrossEntropyLoss()
 
         # Initialize the model for this run
-        model = models.mnasnet(train_mode=True, use_pretrained=self.parameters.cfg["use_pretrained"],
+        model = models.mnasnet(train_mode=True,
+                               use_pretrained=self.parameters.cfg["use_pretrained"],
                                feature_extract=self.parameters.cfg["feature_extract"],
-                               classes=self.parameters.cfg["classes"])
+                               classes=len(classes))
 
         optimizer = self.init_optimizer(model)
 
         # Train and evaluate
-        model_ft, hist = self.train_model(model, data_loaders, loss, optimizer, on_epoch_end)
+        model_ft, hist = self.train_model(model, data_loaders, loss, optimizer, classes, on_epoch_end)
 
         # Save model
         if not os.path.isdir(self.parameters.cfg["output_folder"]):
@@ -177,7 +194,7 @@ class Mnasnet:
             self.parameters.cfg["output_folder"] += '/'
 
         str_datetime = datetime.now().strftime("%d-%m-%YT%Hh%Mm%Ss")
-        model_folder = self.parameters.cfg["output_folder"] + str_datetime + "/"
+        model_folder = self.parameters.cfg["output_folder"] + str_datetime + os.sep
 
         if not os.path.isdir(model_folder):
             os.mkdir(model_folder)
@@ -192,6 +209,11 @@ class Mnasnet:
             model_path = model_folder + self.parameters.cfg["model_name"] + ".onnx"
             input_shape = [1, 3, self.parameters.cfg["input_size"], self.parameters.cfg["input_size"]]
             utils.save_onnx(model, input_shape, self.device, model_path)
+
+        # class labels
+        with open(model_folder + "classes.txt", "w") as f:
+            for cl in classes:
+                f.write(cl + "\n")
 
     def stop(self):
         self.stop_train = True

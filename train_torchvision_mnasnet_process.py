@@ -17,10 +17,10 @@ class TrainMnasnetParam(TaskParam):
         # Place default value initialization here
         self.cfg["model_name"] = 'mnasnet'
         self.cfg["batch_size"] = 8
-        self.cfg["classes"] = 2
         self.cfg["epochs"] = 15
         self.cfg["learning_rate"] = 0.001
         self.cfg["momentum"] = 0.9
+        self.cfg["weight_decay"] = 1e-4
         self.cfg["num_workers"] = 0
         self.cfg["input_size"] = 224
         self.cfg["use_pretrained"] = True
@@ -36,6 +36,7 @@ class TrainMnasnetParam(TaskParam):
         self.cfg["epochs"] = int(param_map["epochs"])
         self.cfg["learning_rate"] = float(param_map["learning_rate"])
         self.cfg["momentum"] = float(param_map["momentum"])
+        self.cfg["weight_decay"] = float(param_map["weight_decay"])
         self.cfg["num_workers"] = int(param_map["num_workers"])
         self.cfg["input_size"] = int(param_map["input_size"])
         self.cfg["use_pretrained"] = bool(param_map["use_pretrained"])
@@ -91,11 +92,11 @@ class TrainMnasnet(dnntrain.TrainProcess):
         # Call endTaskRun to finalize process
         self.endTaskRun()
 
-    def on_epoch_end(self, metrics):
+    def on_epoch_end(self, metrics, epoch):
         # Step progress bar:
         self.emitStepProgress()
         # Log metrics
-        self.log_metrics(metrics)
+        self.log_metrics(metrics, epoch)
 
     def stop(self):
         super().stop()
@@ -119,7 +120,7 @@ class TrainMnasnetFactory(dataprocess.CTaskFactory):
                                 "One could train the full network from pre-trained weights or keep extracted features " \
                                 "and re-train only the classification layer."
         self.info.authors = "Ikomia"
-        self.info.version = "1.2.0"
+        self.info.version = "1.3.0"
         self.info.year = 2020
         self.info.license = "MIT License"
         self.info.repo = "https://github.com/Ikomia-dev"
