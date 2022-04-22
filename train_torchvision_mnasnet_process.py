@@ -67,7 +67,7 @@ class TrainMnasnet(dnntrain.TrainProcess):
         self.trainer = mnasnet.Mnasnet(self.getParam())
         self.enableTensorboard(False)
 
-    def getProgressSteps(self, eltCount=1):
+    def getProgressSteps(self):
         # Function returning the number of progress steps for this process
         # This is handled by the main progress bar of Ikomia application
         param = self.getParam()
