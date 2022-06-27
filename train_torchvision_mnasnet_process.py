@@ -32,7 +32,6 @@ class TrainMnasnetParam(TaskParam):
     def setParamMap(self, param_map):
         self.cfg["model_name"] = param_map["model_name"]
         self.cfg["batch_size"] = int(param_map["batch_size"])
-        self.cfg["classes"] = int(param_map["classes"])
         self.cfg["epochs"] = int(param_map["epochs"])
         self.cfg["learning_rate"] = float(param_map["learning_rate"])
         self.cfg["momentum"] = float(param_map["momentum"])
@@ -120,7 +119,7 @@ class TrainMnasnetFactory(dataprocess.CTaskFactory):
                                 "One could train the full network from pre-trained weights or keep extracted features " \
                                 "and re-train only the classification layer."
         self.info.authors = "Ikomia"
-        self.info.version = "1.3.0"
+        self.info.version = "1.3.1"
         self.info.year = 2020
         self.info.license = "MIT License"
         self.info.repo = "https://github.com/Ikomia-dev"
