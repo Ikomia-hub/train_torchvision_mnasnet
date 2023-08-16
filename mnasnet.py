@@ -82,7 +82,7 @@ class Mnasnet:
         metrics = {}
         val_acc_history = []
         best_model_wts = copy.deepcopy(model.state_dict())
-        best_acc = 0.0
+        best_acc = torch.tensor(0)
         epoch_loss = 0.0
         epoch_acc = 0.0
         class_count = len(classes)
