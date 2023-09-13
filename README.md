@@ -73,8 +73,8 @@ Ikomia Studio offers a friendly UI with the same features as the API.
 - **output_folder** (str, *optional*): path to where the model will be saved. 
 - **num_workers** (int) - default '0': How many parallel subprocesses you want to activate when you are loading all your data during your training or validation. 
 - **weight_decay** (float) - default '1e-4': Amount of weight decay, regularization method.
-- **export_pth** (book) - default 'True'
-- **export_onnx** (book) - default 'False'
+- **export_pth** (bool) - default 'True'
+- **export_onnx** (bool) - default 'False'
 
 **Parameters** should be in **strings format**  when added to the dictionary.
 
