@@ -1,4 +1,4 @@
-from ikomia import core, dataprocess
+from ikomia import utils, core, dataprocess
 from ikomia.core.task import TaskParam
 from ikomia.dnn import dnntrain
 import os
@@ -38,10 +38,10 @@ class TrainMnasnetParam(TaskParam):
         self.cfg["weight_decay"] = float(param_map["weight_decay"])
         self.cfg["num_workers"] = int(param_map["num_workers"])
         self.cfg["input_size"] = int(param_map["input_size"])
-        self.cfg["use_pretrained"] = bool(param_map["use_pretrained"])
-        self.cfg["feature_extract"] = bool(param_map["feature_extract"])
-        self.cfg["export_pth"] = bool(param_map["export_pth"])
-        self.cfg["export_onnx"] = bool(param_map["export_onnx"])
+        self.cfg["use_pretrained"] = utils.strtobool(param_map["use_pretrained"])
+        self.cfg["feature_extract"] = utils.strtobool(param_map["feature_extract"])
+        self.cfg["export_pth"] = utils.strtobool(param_map["export_pth"])
+        self.cfg["export_onnx"] = utils.strtobool(param_map["export_onnx"])
         self.cfg["output_folder"] = param_map["output_folder"]
 
 
@@ -114,7 +114,7 @@ class TrainMnasnetFactory(dataprocess.CTaskFactory):
         self.info.name = "train_torchvision_mnasnet"
         self.info.short_description = "Training process for MnasNet convolutional network."
         self.info.authors = "Ikomia"
-        self.info.version = "1.3.1"
+        self.info.version = "1.3.2"
         self.info.year = 2020
         self.info.license = "MIT License"
         self.info.repository = "https://github.com/Ikomia-hub/train_torchvision_mnasnet"
